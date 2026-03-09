@@ -1,0 +1,1239 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="ديوان"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="theme-color" content="#1c140d"/>
+<link rel="manifest" href="manifest.json"/>
+<link rel="apple-touch-icon" href="icon-192.png"/>
+<title>ديوان — لوحة الفصاحة</title>
+<link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg:#1c140d; --area:#110d08; --panel:#130e07; --brd:#2a1f0e;
+  --kb-top:#332516; --kb-bg:#2a1f14; --kb-brd:#1a1209; --kb-txt:#d4b896;
+  --acc:#c9a84c; --acc2:#e8c97a;
+  --txt:#e8d5a3; --sub:#5a4830; --mut:#3a2d1a;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;margin:0;padding:0;}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);}
+body{display:flex;flex-direction:column;font-family:'Amiri',serif;direction:rtl;
+  padding-bottom:var(--safe-bottom);}
+
+/* ── animations ── */
+@keyframes ink{0%{transform:scale(0);opacity:.6}100%{transform:scale(4);opacity:0}}
+@keyframes up{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pf{0%{opacity:0}12%{opacity:1}82%{opacity:1}100%{opacity:0}}
+@keyframes tp{0%{opacity:0;transform:translateX(-50%) scale(.85)}
+  12%{opacity:1;transform:translateX(-50%) scale(1)}82%{opacity:1}100%{opacity:0}}
+@keyframes sh{from{transform:translateY(100%)}to{transform:translateY(0)}}
+@keyframes sl{from{transform:translateX(30px);opacity:0}to{transform:translateX(0);opacity:1}}
+
+/* ── poem bar ── */
+#poem-bar{
+  background:linear-gradient(135deg,var(--panel),var(--area));
+  border-bottom:1px solid var(--brd);
+  padding:10px 14px;display:flex;align-items:center;
+  justify-content:space-between;min-height:50px;flex-shrink:0;
+}
+#poem-text{
+  flex:1;text-align:center;padding:0 10px;
+  animation:pf 6s ease forwards;
+}
+#poem-text .line{color:#b89060;font-size:14px;font-style:italic;line-height:1.6;}
+#poem-text .poet{color:var(--mut);font-size:11px;margin-top:2px;}
+.diwan-logo{color:var(--acc);font-size:16px;opacity:.55;font-weight:700;}
+#btn-settings{
+  background:transparent;border:1px solid var(--brd);border-radius:8px;
+  padding:7px 11px;color:var(--acc);cursor:pointer;font-size:16px;
+}
+
+/* ── text area ── */
+#write-area{
+  flex:1;padding:10px 12px 6px;
+  display:flex;flex-direction:column;gap:7px;
+  overflow:hidden;min-height:0;
+}
+#text-box{
+  background:var(--area);border:1px solid var(--brd);
+  border-radius:10px;padding:10px 12px;flex:1;
+  position:relative;box-shadow:inset 0 2px 8px rgba(0,0,0,.25);
+  min-height:0;display:flex;flex-direction:column;
+}
+#text-box::before,#text-box::after{
+  content:"✦";position:absolute;top:6px;color:var(--acc);
+  opacity:.15;font-size:12px;
+}
+#text-box::before{right:10px;}#text-box::after{left:10px;}
+#main-input{
+  flex:1;background:transparent;border:none;outline:none;
+  color:var(--txt);font-size:20px;line-height:2;
+  font-family:'Amiri',serif;direction:rtl;text-align:right;
+  resize:none;width:100%;min-height:60px;
+  caret-color:var(--acc);
+}
+#main-input::placeholder{color:#2a2010;}
+
+/* ── toolbar ── */
+#toolbar{display:flex;gap:6px;align-items:center;justify-content:space-between;}
+.tool-btn{
+  padding:5px 11px;border-radius:20px;cursor:pointer;
+  font-family:'Amiri',serif;font-size:13px;border:none;
+}
+.tool-primary{
+  background:linear-gradient(135deg,var(--kb-top),var(--kb-bg));
+  border:1px solid rgba(201,168,76,.35);color:var(--acc);
+}
+.tool-sec{background:transparent;border:1px solid var(--brd);color:var(--sub);}
+.tool-del{background:transparent;border:1px solid rgba(180,50,50,.3);color:#7a3030;}
+#char-count{color:var(--mut);font-size:12px;}
+#autocorrect-badge{font-size:10px;color:var(--acc);opacity:.55;letter-spacing:1px;}
+
+/* ── suggestion bar ── */
+#sug-bar{
+  background:var(--panel);border-radius:8px;
+  display:flex;align-items:stretch;min-height:40px;
+  border:1px solid var(--brd);overflow:hidden;flex-shrink:0;
+}
+.sug-word{
+  flex:1;min-width:60px;background:transparent;border:none;
+  font-family:'Amiri',serif;font-size:17px;cursor:pointer;
+  color:rgba(201,168,76,.6);padding:5px 6px;
+  border-left:1px solid var(--brd);
+}
+.sug-word:last-child{border-left:none;}
+.sug-word.center{color:var(--acc2);font-weight:700;}
+.sug-placeholder{
+  flex:1;display:flex;align-items:center;justify-content:center;gap:20px;
+}
+.sug-ph-item{
+  background:transparent;border:none;font-family:'Amiri',serif;
+  font-size:15px;cursor:pointer;color:var(--mut);padding:4px 8px;
+}
+.sug-ph-item.mid{color:var(--acc);font-weight:700;}
+
+/* ── fasaha card ── */
+#fasaha-card{
+  margin:0 12px 5px;
+  background:linear-gradient(135deg,var(--kb-top),var(--kb-bg));
+  border:1px solid rgba(201,168,76,.3);border-radius:10px;
+  padding:11px 13px;animation:up .3s ease;
+  border-right:3px solid var(--acc);display:none;
+}
+#fasaha-card .f-label{color:var(--sub);font-size:11px;letter-spacing:3px;margin-bottom:8px;}
+#fasaha-pills{display:flex;gap:7px;flex-wrap:wrap;}
+.f-pill{
+  padding:6px 14px;
+  background:linear-gradient(135deg,var(--kb-top),var(--kb-bg));
+  border:1px solid rgba(201,168,76,.4);border-radius:20px;
+  color:var(--acc);font-size:16px;cursor:pointer;
+  font-family:'Amiri',serif;display:flex;gap:7px;align-items:center;
+}
+.f-pill .orig{color:var(--sub);font-size:12px;}
+
+/* ── word info ── */
+#word-info{
+  margin:0 12px 5px;
+  background:linear-gradient(135deg,var(--kb-bg),var(--area));
+  border:1px solid var(--brd);border-radius:10px;
+  padding:11px 13px;border-right:3px solid rgba(201,168,76,.4);
+  display:none;animation:up .3s ease;
+}
+#word-info .wi-classical{color:var(--acc);font-size:21px;font-weight:700;margin-bottom:3px;}
+#word-info .wi-meaning{color:#b89060;font-size:13px;line-height:1.7;}
+#word-info .wi-poet{color:var(--mut);font-size:11px;margin-top:4px;font-style:italic;}
+#word-info-close{float:left;background:transparent;border:none;color:var(--sub);font-size:17px;cursor:pointer;}
+
+/* ── lang bar ── */
+#lang-bar{
+  background:var(--panel);border-top:1px solid var(--brd);
+  display:flex;padding:4px 7px;gap:3px;align-items:center;flex-shrink:0;
+}
+.lang-btn{
+  flex:1;height:34px;font-size:13px;border-radius:6px;
+  background:transparent;border:1px solid var(--brd);
+  color:var(--mut);cursor:pointer;font-family:'Amiri',serif;
+  transition:all .2s;
+}
+.lang-btn.active{
+  background:linear-gradient(135deg,var(--kb-top),var(--kb-bg));
+  border-color:rgba(201,168,76,.4);color:var(--acc);
+}
+#btn-space{
+  flex:3;height:34px;font-size:11px;letter-spacing:4px;
+  background:linear-gradient(180deg,var(--kb-top),var(--kb-bg));
+  border:1px solid var(--kb-brd);border-bottom:2px solid var(--area);
+  border-radius:6px;color:var(--sub);cursor:pointer;font-family:'Amiri',serif;
+}
+#btn-enter{
+  flex:1.2;height:34px;font-size:14px;
+  background:linear-gradient(180deg,var(--kb-top),var(--kb-bg));
+  border:1px solid var(--kb-brd);border-bottom:2px solid var(--area);
+  border-radius:6px;color:#3a7030;cursor:pointer;
+}
+
+/* ── keyboard ── */
+#keyboard{
+  background:var(--area);padding:4px 3px 10px;
+  border-top:1px solid var(--brd);flex-shrink:0;
+}
+.kb-row{display:flex;justify-content:center;gap:3px;margin-bottom:3px;}
+.k{
+  height:42px;min-width:30px;
+  background:linear-gradient(180deg,var(--kb-top),var(--kb-bg));
+  border:1px solid var(--kb-brd);border-bottom:2.5px solid var(--area);
+  border-radius:6px;color:var(--kb-txt);font-size:19px;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  font-family:'Amiri',serif;position:relative;overflow:hidden;
+  transition:filter .07s,transform .07s;user-select:none;
+  -webkit-user-select:none;touch-action:manipulation;
+}
+.k:active{transform:translateY(1px);filter:brightness(1.5);border-bottom-width:1px;}
+.k.wide{min-width:50px;}
+.k.spec{background:linear-gradient(180deg,#1e1608,#170f05);color:var(--acc);}
+.k.haraka{
+  background:linear-gradient(180deg,var(--panel),var(--area));
+  color:rgba(212,184,150,.5);font-size:20px;
+}
+.ink-drop{
+  position:absolute;width:20px;height:20px;border-radius:50%;
+  background:rgba(201,168,76,.45);pointer-events:none;
+  transform:scale(0);animation:ink .6s ease-out forwards;
+  margin:-10px 0 0 -10px;
+}
+
+/* ── toast ── */
+#toast{
+  position:fixed;bottom:130px;left:50%;
+  background:linear-gradient(135deg,var(--kb-top),var(--kb-bg));
+  border:1px solid var(--acc);border-radius:20px;
+  padding:8px 20px;color:var(--acc);font-size:13px;
+  font-family:'Amiri',serif;pointer-events:none;z-index:9999;
+  box-shadow:0 4px 20px rgba(0,0,0,.6);white-space:nowrap;
+  display:none;
+}
+
+/* ══════════════════════════════════════
+   SETTINGS SHEET
+══════════════════════════════════════ */
+#settings-overlay{
+  display:none;position:fixed;inset:0;z-index:3000;
+  flex-direction:column;justify-content:flex-end;
+}
+#settings-overlay.open{display:flex;}
+#settings-dim{
+  position:absolute;inset:0;
+  background:rgba(0,0,0,.72);backdrop-filter:blur(5px);
+}
+#settings-sheet{
+  position:relative;z-index:1;
+  background:var(--bg);
+  border-radius:22px 22px 0 0;
+  border-top:1px solid var(--brd);
+  max-height:88vh;display:flex;flex-direction:column;
+  animation:sh .38s cubic-bezier(.2,.8,.3,1) forwards;
+}
+#settings-head{
+  display:flex;align-items:center;gap:12px;
+  padding:16px 18px;border-bottom:1px solid var(--brd);
+  background:rgba(19,14,7,.92);backdrop-filter:blur(10px);
+  border-radius:22px 22px 0 0;flex-shrink:0;
+}
+#settings-title{flex:1;color:var(--acc);font-size:19px;font-weight:700;letter-spacing:2px;}
+#settings-subtitle{color:var(--sub);font-size:11px;margin-top:2px;letter-spacing:1px;}
+#btn-settings-close{
+  background:transparent;border:1px solid var(--brd);
+  border-radius:50%;width:33px;height:33px;
+  color:var(--sub);cursor:pointer;font-size:15px;flex-shrink:0;
+}
+#btn-back{
+  background:transparent;border:1px solid var(--brd);
+  border-radius:50%;width:33px;height:33px;
+  color:var(--acc);cursor:pointer;font-size:16px;
+  flex-shrink:0;display:none;
+}
+#settings-body{flex:1;overflow-y:auto;padding:0;}
+
+/* settings list */
+.set-item{
+  display:flex;align-items:center;gap:13px;
+  padding:13px 18px;cursor:pointer;
+  border-bottom:1px solid var(--brd);
+  transition:background .15s;
+}
+.set-item:hover,.set-item:active{background:rgba(42,31,20,.5);}
+.set-icon{
+  width:42px;height:42px;border-radius:11px;flex-shrink:0;
+  background:linear-gradient(135deg,var(--kb-top),var(--kb-bg));
+  border:1px solid var(--brd);
+  display:flex;align-items:center;justify-content:center;font-size:19px;
+}
+.set-texts{flex:1;}
+.set-label{color:var(--txt);font-size:15px;font-weight:600;}
+.set-sub{color:var(--sub);font-size:12px;margin-top:2px;}
+.set-arrow{color:var(--mut);font-size:17px;}
+
+/* sub-pages */
+.sub-page{display:none;animation:sl .25s ease;}
+.sub-page.open{display:block;}
+.sub-hdr{padding:14px 18px;border-bottom:1px solid var(--brd);}
+.sub-hdr .sh-title{color:var(--acc);font-size:18px;font-weight:700;}
+.sub-hdr .sh-sub{color:var(--sub);font-size:12px;margin-top:3px;}
+.sub-body{padding:14px 18px;}
+
+/* toggle */
+.toggle-row{
+  display:flex;align-items:center;gap:13px;
+  padding:13px 0;border-bottom:1px solid var(--brd);
+}
+.toggle-row:last-child{border-bottom:none;}
+.toggle-icon{font-size:18px;width:28px;text-align:center;flex-shrink:0;}
+.toggle-texts{flex:1;}
+.toggle-label{color:var(--txt);font-size:15px;font-weight:600;}
+.toggle-sub{color:var(--sub);font-size:12px;margin-top:2px;}
+.tog{
+  width:50px;height:28px;border-radius:14px;cursor:pointer;
+  position:relative;flex-shrink:0;transition:background .3s;
+  background:#2a2a2a;border:1px solid #444;
+}
+.tog.on{background:var(--acc);border-color:var(--acc);}
+.tog-knob{
+  position:absolute;top:4px;right:4px;
+  width:18px;height:18px;border-radius:50%;
+  background:#666;transition:right .28s cubic-bezier(.4,0,.2,1),background .3s;
+  box-shadow:0 1px 4px rgba(0,0,0,.5);
+}
+.tog.on .tog-knob{right:calc(100% - 22px);background:#fff;}
+
+/* swatches */
+.swatch-row{display:flex;gap:12px;flex-wrap:wrap;padding:10px 0;}
+.swatch{
+  display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;
+}
+.swatch-circle{
+  width:40px;height:40px;border-radius:50%;
+  border:2px solid #333;transition:all .22s;
+}
+.swatch.active .swatch-circle{
+  border:3px solid var(--acc);transform:scale(1.18);
+  box-shadow:0 0 10px rgba(201,168,76,.5);
+}
+.swatch-name{font-size:11px;color:var(--sub);}
+
+/* key preview */
+.key-preview{
+  display:flex;gap:5px;justify-content:center;
+  margin-top:12px;padding:12px;
+  background:var(--area);border-radius:10px;border:1px solid var(--brd);
+}
+.kp-key{
+  width:42px;height:42px;border-radius:6px;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Amiri',serif;font-size:19px;
+  background:linear-gradient(180deg,var(--kb-top),var(--kb-bg));
+  border:1px solid var(--kb-brd);border-bottom:2.5px solid var(--area);
+  color:var(--kb-txt);
+}
+.kp-key.acc{color:var(--acc);}
+
+/* range */
+.range-row{display:flex;align-items:center;gap:10px;margin-top:10px;}
+input[type=range]{flex:1;accent-color:var(--acc);height:4px;border-radius:2px;}
+.range-val{color:var(--acc);font-size:13px;width:28px;text-align:center;}
+
+/* dict list */
+.dict-row{
+  padding:9px 0;border-bottom:1px solid var(--brd);
+  display:flex;justify-content:space-between;align-items:center;
+}
+.dict-pair{display:flex;gap:9px;align-items:center;}
+.dict-orig{color:var(--sub);font-size:14px;}
+.dict-arr{color:var(--mut);}
+.dict-class{color:var(--acc);font-size:18px;font-weight:700;}
+.dict-mean{color:var(--mut);font-size:11px;margin-top:1px;}
+.dict-poet{color:var(--mut);font-size:11px;font-style:italic;}
+
+/* privacy / about */
+.info-text{color:var(--sub);font-size:14px;line-height:2.1;}
+.about-box{
+  background:rgba(42,31,20,.4);border:1px solid var(--brd);
+  border-radius:12px;padding:16px;
+  color:#b89060;font-size:13px;line-height:2;font-style:italic;
+  text-align:center;margin-top:14px;
+}
+.about-logo{text-align:center;font-size:44px;margin-bottom:10px;}
+.about-title{color:var(--acc);font-size:21px;font-weight:700;text-align:center;margin-bottom:4px;}
+.about-ver{color:var(--sub);font-size:12px;text-align:center;margin-bottom:18px;}
+
+/* install banner */
+#install-banner{
+  display:none;position:fixed;bottom:0;left:0;right:0;z-index:4000;
+  background:linear-gradient(135deg,#1f1a0e,#2a2010);
+  border-top:1px solid var(--acc);padding:12px 16px;
+  flex-direction:column;gap:8px;
+  padding-bottom:calc(12px + var(--safe-bottom));
+}
+#install-banner.show{display:flex;}
+.ib-title{color:var(--acc);font-size:15px;font-weight:700;}
+.ib-sub{color:var(--sub);font-size:12px;}
+.ib-btns{display:flex;gap:8px;}
+.ib-install{
+  flex:1;padding:10px;
+  background:linear-gradient(135deg,var(--acc),#a07830);
+  border:none;border-radius:10px;color:#0e0a04;
+  font-family:'Amiri',serif;font-size:14px;font-weight:700;cursor:pointer;
+}
+.ib-dismiss{
+  padding:10px 16px;background:transparent;
+  border:1px solid var(--brd);border-radius:10px;
+  color:var(--sub);font-family:'Amiri',serif;font-size:14px;cursor:pointer;
+}
+</style>
+</head>
+<body>
+
+<!-- ══ شريط الشعر ══ -->
+<div id="poem-bar">
+  <span class="diwan-logo">دِيوَان</span>
+  <div id="poem-text">
+    <div class="line" id="poem-line">عَلى قَدرِ أَهلِ العَزمِ تَأتي العَزائِمُ</div>
+    <div class="poet" id="poem-poet">— المتنبي</div>
+  </div>
+  <button id="btn-settings">⚙</button>
+</div>
+
+<!-- ══ منطقة الكتابة ══ -->
+<div id="write-area">
+  <div id="text-box">
+    <textarea id="main-input" placeholder="قُلْ فصيحاً ما تشاء..."></textarea>
+  </div>
+
+  <div id="toolbar">
+    <div style="display:flex;gap:6px;">
+      <button class="tool-btn tool-primary" id="btn-convert">⟳ فصيح</button>
+      <button class="tool-btn tool-sec" id="btn-copy">نسخ</button>
+      <button class="tool-btn tool-del" id="btn-clear">مسح</button>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;">
+      <span id="autocorrect-badge">✦ تصحيح</span>
+      <span id="char-count">0</span>
+    </div>
+  </div>
+
+  <div id="sug-bar">
+    <div class="sug-placeholder" id="sug-placeholder">
+      <button class="sug-ph-item" data-w="الفَصَاحَة">الفَصَاحَة</button>
+      <button class="sug-ph-item mid" data-w="بَهِيّ">بَهِيّ</button>
+      <button class="sug-ph-item" data-w="مَثْوَى">مَثْوَى</button>
+    </div>
+    <div id="sug-words" style="display:none;flex:1;display:none;overflow-x:auto;"></div>
+  </div>
+</div>
+
+<!-- ══ بطاقة اقتراحات الفصاحة ══ -->
+<div id="fasaha-card">
+  <div class="f-label">✦ اقتراحات الفصاحة</div>
+  <div id="fasaha-pills"></div>
+</div>
+
+<!-- ══ بطاقة معلومات الكلمة ══ -->
+<div id="word-info">
+  <button id="word-info-close">✕</button>
+  <div class="wi-classical" id="wi-c"></div>
+  <div class="wi-meaning" id="wi-m"></div>
+  <div class="wi-poet" id="wi-p"></div>
+</div>
+
+<!-- ══ شريط اللغة ══ -->
+<div id="lang-bar">
+  <button class="lang-btn active" data-mode="ar">عَرَبِي</button>
+  <button class="lang-btn" data-mode="en">En</button>
+  <button class="lang-btn" data-mode="num">١٢٣</button>
+  <button id="btn-space">مسافة</button>
+  <button id="btn-enter">↵</button>
+</div>
+
+<!-- ══ لوحة المفاتيح ══ -->
+<div id="keyboard"></div>
+
+<!-- ══ Toast ══ -->
+<div id="toast"></div>
+
+<!-- ══ لوحة الإعدادات ══ -->
+<div id="settings-overlay">
+  <div id="settings-dim"></div>
+  <div id="settings-sheet">
+    <div id="settings-head">
+      <button id="btn-back">←</button>
+      <div>
+        <div id="settings-title">الإعْدَادَات</div>
+        <div id="settings-subtitle">دِيوَان — مكتبة الفصاحة</div>
+      </div>
+      <button id="btn-settings-close">✕</button>
+    </div>
+    <div id="settings-body">
+
+      <!-- القائمة الرئيسية -->
+      <div id="set-main">
+        <div class="set-item" data-sec="languages">
+          <div class="set-icon">🌐</div>
+          <div class="set-texts">
+            <div class="set-label">اللُّغَات</div>
+            <div class="set-sub">العربية الفصيحة، الإنجليزية</div>
+          </div><span class="set-arrow">‹</span>
+        </div>
+        <div class="set-item" data-sec="preferences">
+          <div class="set-icon">⚖</div>
+          <div class="set-texts">
+            <div class="set-label">التَّفضِيلَات</div>
+            <div class="set-sub">شريط الشعر، الأصوات، الاهتزاز</div>
+          </div><span class="set-arrow">‹</span>
+        </div>
+        <div class="set-item" data-sec="theme">
+          <div class="set-icon">🎨</div>
+          <div class="set-texts">
+            <div class="set-label">المَظهَر</div>
+            <div class="set-sub">الخلفية، اللوحة، حجم الخط</div>
+          </div><span class="set-arrow">‹</span>
+        </div>
+        <div class="set-item" data-sec="corrections">
+          <div class="set-icon" style="font-size:16px;font-weight:700;color:#c9a84c;">Aٜ</div>
+          <div class="set-texts">
+            <div class="set-label">التَّصحِيح والاقتِراح</div>
+            <div class="set-sub">التصحيح التلقائي، الإكمال</div>
+          </div><span class="set-arrow">‹</span>
+        </div>
+        <div class="set-item" data-sec="glide">
+          <div class="set-icon">〰</div>
+          <div class="set-texts">
+            <div class="set-label">الكِتَابَة الانسِيَابِيَّة</div>
+            <div class="set-sub">اكتب بالإمرار على المفاتيح</div>
+          </div><span class="set-arrow">‹</span>
+        </div>
+        <div class="set-item" data-sec="voice">
+          <div class="set-icon">🎙</div>
+          <div class="set-texts">
+            <div class="set-label">الكِتَابَة الصَّوتِيَّة</div>
+            <div class="set-sub">أملِ بصوتك والديوان يكتب</div>
+          </div><span class="set-arrow">‹</span>
+        </div>
+        <div class="set-item" data-sec="clipboard">
+          <div class="set-icon">📋</div>
+          <div class="set-texts">
+            <div class="set-label">الحَافِظَة</div>
+            <div class="set-sub">إدارة النصوص المنسوخة</div>
+          </div><span class="set-arrow">‹</span>
+        </div>
+        <div class="set-item" data-sec="dictionary">
+          <div class="set-icon">📖</div>
+          <div class="set-texts">
+            <div class="set-label">المُعجَم الفصيح</div>
+            <div class="set-sub">مفردات الشعر الجاهلي والعباسي</div>
+          </div><span class="set-arrow">‹</span>
+        </div>
+        <div class="set-item" data-sec="privacy">
+          <div class="set-icon">🛡</div>
+          <div class="set-texts">
+            <div class="set-label">الخُصُوصِيَّة</div>
+            <div class="set-sub">بياناتك لك وحدك</div>
+          </div><span class="set-arrow">‹</span>
+        </div>
+        <div class="set-item" data-sec="about">
+          <div class="set-icon">ℹ</div>
+          <div class="set-texts">
+            <div class="set-label">حَولَ دِيوَان</div>
+            <div class="set-sub">الإصدار ١.٠ — مكتبة الفصاحة</div>
+          </div><span class="set-arrow">‹</span>
+        </div>
+      </div>
+
+      <!-- صفحة: اللغات -->
+      <div class="sub-page" id="sec-languages">
+        <div class="sub-hdr"><div class="sh-title">اللُّغَات</div><div class="sh-sub">اختر لغات الكتابة</div></div>
+        <div class="sub-body">
+          <div class="toggle-row">
+            <div class="toggle-icon">🇸🇦</div>
+            <div class="toggle-texts"><div class="toggle-label">العَرَبِيَّة الفصيحة</div><div class="toggle-sub">تخطيط ديوان</div></div>
+            <div class="tog on" id="tog-ar"><div class="tog-knob"></div></div>
+          </div>
+          <div class="toggle-row">
+            <div class="toggle-icon">🇬🇧</div>
+            <div class="toggle-texts"><div class="toggle-label">الإنجليزية</div><div class="toggle-sub">QWERTY</div></div>
+            <div class="tog on" id="tog-en"><div class="tog-knob"></div></div>
+          </div>
+          <div class="toggle-row">
+            <div class="toggle-icon">🔢</div>
+            <div class="toggle-texts"><div class="toggle-label">الأرقام والرموز</div><div class="toggle-sub">١٢٣ — أرقام عربية وعلامات</div></div>
+            <div class="tog on" id="tog-num"><div class="tog-knob"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- صفحة: التفضيلات -->
+      <div class="sub-page" id="sec-preferences">
+        <div class="sub-hdr"><div class="sh-title">التَّفضِيلَات</div><div class="sh-sub">إعدادات عامة للكتابة</div></div>
+        <div class="sub-body">
+          <div class="toggle-row">
+            <div class="toggle-icon">📜</div>
+            <div class="toggle-texts"><div class="toggle-label">شريط الشِّعر</div><div class="toggle-sub">عرض أبيات شعرية في الأعلى</div></div>
+            <div class="tog on" id="tog-poem"><div class="tog-knob"></div></div>
+          </div>
+          <div class="toggle-row">
+            <div class="toggle-icon">🔊</div>
+            <div class="toggle-texts"><div class="toggle-label">الأصوَات</div><div class="toggle-sub">صوت عند لمس المفاتيح</div></div>
+            <div class="tog" id="tog-sound"><div class="tog-knob"></div></div>
+          </div>
+          <div class="toggle-row">
+            <div class="toggle-icon">📳</div>
+            <div class="toggle-texts"><div class="toggle-label">الاهتِزَاز</div><div class="toggle-sub">اهتزاز خفيف أثناء الكتابة</div></div>
+            <div class="tog on" id="tog-haptic"><div class="tog-knob"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- صفحة: المظهر -->
+      <div class="sub-page" id="sec-theme">
+        <div class="sub-hdr"><div class="sh-title">المَظهَر</div><div class="sh-sub">ألوان الديوان ونمطه</div></div>
+        <div class="sub-body">
+          <div style="color:var(--acc);font-size:12px;letter-spacing:3px;margin-bottom:8px;opacity:.8;">✦ لون الخلفية</div>
+          <div class="swatch-row" id="bg-swatches"></div>
+          <div style="color:var(--acc);font-size:12px;letter-spacing:3px;margin:16px 0 8px;opacity:.8;">✦ لون لوحة المفاتيح</div>
+          <div class="swatch-row" id="key-swatches"></div>
+          <div class="key-preview" id="key-preview">
+            <div class="kp-key">ب</div><div class="kp-key">ه</div>
+            <div class="kp-key">ي</div><div class="kp-key haraka">ّ</div>
+            <div class="kp-key acc">✦</div><div class="kp-key acc">⌫</div>
+          </div>
+          <div style="color:var(--mut);font-size:11px;text-align:center;margin-top:6px;">معاينة المفاتيح</div>
+          <div style="color:var(--acc);font-size:12px;letter-spacing:3px;margin:16px 0 8px;opacity:.8;">✦ حجم الخط</div>
+          <div class="range-row">
+            <span style="color:var(--sub);font-size:13px;font-family:'Amiri',serif;">ص</span>
+            <input type="range" id="font-range" min="16" max="28" value="20"/>
+            <span style="color:var(--sub);font-size:19px;font-family:'Amiri',serif;">ص</span>
+            <span class="range-val" id="font-val">20</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- صفحة: التصحيح -->
+      <div class="sub-page" id="sec-corrections">
+        <div class="sub-hdr"><div class="sh-title">التَّصحِيح والاقتِراح</div><div class="sh-sub">ضبط سلوك الكتابة الفصيحة</div></div>
+        <div class="sub-body">
+          <div class="toggle-row">
+            <div class="toggle-icon">✦</div>
+            <div class="toggle-texts"><div class="toggle-label">التَّصحِيح التِّلقَائي</div><div class="toggle-sub">يحوِّل العامي فصيحاً لحظة المسافة</div></div>
+            <div class="tog on" id="tog-autocorrect"><div class="tog-knob"></div></div>
+          </div>
+          <div class="toggle-row">
+            <div class="toggle-icon">💡</div>
+            <div class="toggle-texts"><div class="toggle-label">اقتِرَاح المُفرَدَات</div><div class="toggle-sub">يعرض البديل الفصيح أثناء الكتابة</div></div>
+            <div class="tog on" id="tog-suggest"><div class="tog-knob"></div></div>
+          </div>
+          <div class="toggle-row">
+            <div class="toggle-icon">⌨</div>
+            <div class="toggle-texts"><div class="toggle-label">الإكمَال التِّلقَائي</div><div class="toggle-sub">يقترح كلمات في شريط الاقتراحات</div></div>
+            <div class="tog on" id="tog-complete"><div class="tog-knob"></div></div>
+          </div>
+          <div class="toggle-row">
+            <div class="toggle-icon">🔍</div>
+            <div class="toggle-texts"><div class="toggle-label">التَّدقِيق الإملَائي</div><div class="toggle-sub">يميِّز الكلمات غير الفصيحة</div></div>
+            <div class="tog on" id="tog-spell"><div class="tog-knob"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- صفحة: الانسيابية -->
+      <div class="sub-page" id="sec-glide">
+        <div class="sub-hdr"><div class="sh-title">الكِتَابَة الانسِيَابِيَّة</div><div class="sh-sub">اكتب بالإمرار على المفاتيح</div></div>
+        <div class="sub-body">
+          <div class="toggle-row">
+            <div class="toggle-icon">〰</div>
+            <div class="toggle-texts"><div class="toggle-label">تفعيل الانسِيَابِيَّة</div><div class="toggle-sub">اكتب كلمة بإمرار إصبعك</div></div>
+            <div class="tog" id="tog-glide"><div class="tog-knob"></div></div>
+          </div>
+          <p style="color:var(--sub);font-size:13px;margin-top:18px;line-height:1.9;font-style:italic;">
+            قريباً — ميزة الكتابة الانسيابية ستُتاح في الإصدار القادم من ديوان
+          </p>
+        </div>
+      </div>
+
+      <!-- صفحة: الصوتية -->
+      <div class="sub-page" id="sec-voice">
+        <div class="sub-hdr"><div class="sh-title">الكِتَابَة الصَّوتِيَّة</div><div class="sh-sub">أملِ بصوتك والديوان يكتب</div></div>
+        <div class="sub-body">
+          <div class="toggle-row">
+            <div class="toggle-icon">🎙</div>
+            <div class="toggle-texts"><div class="toggle-label">تفعيل الإدخال الصَّوتي</div><div class="toggle-sub">تحويل الكلام إلى نص فصيح</div></div>
+            <div class="tog" id="tog-voice"><div class="tog-knob"></div></div>
+          </div>
+          <p style="color:var(--sub);font-size:13px;margin-top:18px;line-height:1.9;">
+            تتطلب هذه الميزة إذن الميكروفون على جهازك
+          </p>
+        </div>
+      </div>
+
+      <!-- صفحة: الحافظة -->
+      <div class="sub-page" id="sec-clipboard">
+        <div class="sub-hdr"><div class="sh-title">الحَافِظَة</div><div class="sh-sub">إدارة النصوص المنسوخة</div></div>
+        <div class="sub-body">
+          <div class="toggle-row">
+            <div class="toggle-icon">📋</div>
+            <div class="toggle-texts"><div class="toggle-label">تفعيل الحَافِظَة</div><div class="toggle-sub">احتفظ بآخر ما نسخته</div></div>
+            <div class="tog on" id="tog-clip"><div class="tog-knob"></div></div>
+          </div>
+          <button onclick="copyText();closeSettings();" style="
+            margin-top:16px;width:100%;padding:12px;
+            background:linear-gradient(135deg,var(--kb-top),var(--kb-bg));
+            border:1px solid rgba(201,168,76,.35);border-radius:10px;
+            color:var(--acc);font-family:'Amiri',serif;font-size:15px;cursor:pointer;">
+            نسخ النَّص الحالي
+          </button>
+        </div>
+      </div>
+
+      <!-- صفحة: المعجم -->
+      <div class="sub-page" id="sec-dictionary">
+        <div class="sub-hdr"><div class="sh-title">المُعجَم الفصيح</div><div class="sh-sub">مفردات الشعر الجاهلي والعباسي</div></div>
+        <div class="sub-body" id="dict-list" style="max-height:55vh;overflow-y:auto;"></div>
+      </div>
+
+      <!-- صفحة: الخصوصية -->
+      <div class="sub-page" id="sec-privacy">
+        <div class="sub-hdr"><div class="sh-title">الخُصُوصِيَّة</div><div class="sh-sub">بياناتك لك وحدك</div></div>
+        <div class="sub-body">
+          <p class="info-text">• لا يُرسَل أي نص تكتبه خارج جهازك</p>
+          <p class="info-text">• قاموس الفصاحة محلي بالكامل</p>
+          <p class="info-text">• لا تحليلات ولا إعلانات من أي نوع</p>
+          <p class="info-text">• يعمل بالكامل بدون إنترنت بعد التثبيت</p>
+          <p class="info-text">• البيانات لا تُخزَّن على أي خادم</p>
+        </div>
+      </div>
+
+      <!-- صفحة: حول -->
+      <div class="sub-page" id="sec-about">
+        <div class="sub-hdr"><div class="sh-title">حَولَ دِيوَان</div></div>
+        <div class="sub-body">
+          <div class="about-logo">📜</div>
+          <div class="about-title">دِيوَان</div>
+          <div class="about-ver">الإصدار ١.٠ — مكتبة الفصاحة العربية</div>
+          <div class="about-box">
+            «بُنِيَ هذا الدِّيوانُ على أكتافِ الشُّعراءِ العِظام،<br/>
+            مِن امرئِ القَيسِ إلى المُتَنَبِّي،<br/>
+            لِتَبقى الفصاحةُ حيَّةً في كلِّ ضَغطةِ حَرف»
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /settings-body -->
+  </div><!-- /settings-sheet -->
+</div><!-- /settings-overlay -->
+
+<!-- ══ بانر التثبيت ══ -->
+<div id="install-banner">
+  <div class="ib-title">ثَبِّت ديوان على هاتفك</div>
+  <div class="ib-sub">اضغط "إضافة إلى الشاشة الرئيسية" للوصول السريع</div>
+  <div class="ib-btns">
+    <button class="ib-install" id="btn-install">تثبيت</button>
+    <button class="ib-dismiss" id="btn-dismiss">لاحقاً</button>
+  </div>
+</div>
+
+<script>
+/* ══════════════════════════════════════════
+   البيانات
+══════════════════════════════════════════ */
+const DICT = {
+  "جميل":{c:"بَهِيّ",m:"الحسنُ المُضيء كأنوار الصباح",p:"امرؤ القيس"},
+  "حزين":{c:"كَئِيب",m:"المطرقُ برأسه ثِقَلاً من الهموم",p:"المتنبي"},
+  "قلب":{c:"فُؤَاد",m:"موضعُ الحبّ والحرقة في الصدر",p:"المتنبي"},
+  "عيون":{c:"مُقَل",m:"جمع مُقلة، حدقةُ العين الساحرة",p:"أبو تمام"},
+  "ليل":{c:"سُدْفَة",m:"ظلامُ الليل الكثيف الدامس",p:"الأعشى"},
+  "سعيد":{c:"مَحْبُور",m:"الفرحُ التامّ أعلى درجات السرور",p:"زهير"},
+  "جبل":{c:"طَوْد",m:"الجبلُ الشامخ العظيم الراسخ",p:"عنترة"},
+  "بحر":{c:"يَمّ",m:"البحرُ الواسع العميق الهادر",p:"التراث"},
+  "سيف":{c:"صَارِم",m:"السيفُ القاطع الماضي في الضرب",p:"عنترة"},
+  "حب":{c:"وَجْد",m:"الحبُّ الشديد المُذيب للقلوب",p:"جميل بثينة"},
+  "اشتياق":{c:"شَوْق",m:"تطلّعُ النفس المؤلم لمحبوبها",p:"المجنون"},
+  "شجاع":{c:"مِقْدَام",m:"المقتحمُ للأهوال لا يهاب الموت",p:"عنترة"},
+  "كريم":{c:"جَوَاد",m:"الباذلُ ما عنده بلا منٍّ ولا بخل",p:"حاتم"},
+  "نار":{c:"جَذْوَة",m:"قطعةُ النار الملتهبة في الظلام",p:"المتنبي"},
+  "ماء":{c:"نَمِير",m:"الماءُ العذب الصافي الكثير",p:"الجاهليون"},
+  "شمس":{c:"شَارِق",m:"الشمسُ في شروقها الذهبي",p:"الجاهليون"},
+  "قمر":{c:"بَدْر",m:"القمرُ ليلة اكتماله ورونقه",p:"الغزليون"},
+  "نجم":{c:"كَوْكَب",m:"النجمُ المضيء زينةُ السماء",p:"الجاهليون"},
+  "زهرة":{c:"نَوْرَة",m:"الزهرةُ المتفتّحة في الربيع",p:"أبو تمام"},
+  "حكيم":{c:"أَرِيب",m:"العاقلُ ذو الفطنة والدهاء",p:"زهير"},
+  "طريق":{c:"سَبِيل",m:"الطريقُ الواضح الممتد أمامك",p:"زهير"},
+  "صديق":{c:"نَدِيم",m:"الصديقُ المؤانس على الحديث",p:"أبو نواس"},
+  "بيت":{c:"مَثْوَى",m:"المكانُ الذي تثوي فيه وتستقر",p:"لبيد"},
+  "سعادة":{c:"غِبْطَة",m:"السعادةُ التامّة بلا غيرة ولا حسد",p:"العباسيون"},
+  "شعر":{c:"قَرِيض",m:"الشعرُ الموزون المحكم الصياغة",p:"الجاهليون"},
+};
+
+const COLL = {
+  "مش":"لَيْسَ","بس":"غَيْرَ أَنَّ","كمان":"أَيْضاً","دلوقتي":"الآنَ",
+  "ليه":"لِمَ","إيه":"ما","احنا":"نَحْنُ","انتو":"أَنْتُمْ","مين":"مَنْ",
+  "فين":"أَيْنَ","إمتى":"مَتَى","ازاي":"كَيْفَ","قوي":"شَدِيد",
+  "زي":"مِثْلَ","عايز":"أُرِيدُ","تعال":"هَلُمَّ","روح":"اذْهَبْ",
+  "جاي":"قَادِم","راح":"ذَهَبَ","شاف":"رَأَى","عمل":"فَعَلَ",
+};
+
+const POEMS=[
+  {t:"عَلى قَدرِ أَهلِ العَزمِ تَأتي العَزائِمُ",p:"المتنبي"},
+  {t:"وَما نَيلُ المَطالِبِ بِالتَمَنّي",p:"البهاء زهير"},
+  {t:"الخَيلُ وَاللَيلُ وَالبَيداءُ تَعرِفُني",p:"المتنبي"},
+  {t:"أَنا الَّذي نَظَرَ الأَعمى إِلى أَدَبي",p:"المتنبي"},
+  {t:"وَلَيسَ كَثيراً أَن أُقَبِّلَ أَرضَها",p:"امرؤ القيس"},
+  {t:"إِذا كانَ الشَبابُ هوَ الجَمالَ فَأَنتِ",p:"ابن الرومي"},
+];
+
+const BG_THEMES=[
+  {id:"diwan",label:"الدِّيوان",bg:"#1c140d",area:"#110d08",panel:"#130e07",brd:"#2a1f0e"},
+  {id:"layl",label:"اللَّيل",bg:"#080812",area:"#060610",panel:"#0a0a18",brd:"#15152a"},
+  {id:"sahara",label:"الصَّحراء",bg:"#1d1508",area:"#170f04",panel:"#221a0a",brd:"#3d2d10"},
+  {id:"oud",label:"العُود",bg:"#12100d",area:"#0e0c09",panel:"#161410",brd:"#2a2418"},
+  {id:"ivory",label:"العَاج",bg:"#f2ead6",area:"#e8dcc0",panel:"#ede4cc",brd:"#c8b48a",light:true},
+  {id:"nawras",label:"النَّوْرَس",bg:"#0a1520",area:"#071018",panel:"#0d1a28",brd:"#1a2d40"},
+];
+
+const KEY_THEMES=[
+  {id:"dhahab",label:"الذَّهَب",top:"#332516",bg:"#2a1f14",brd:"#1a1209",txt:"#d4b896",acc:"#c9a84c"},
+  {id:"aqeeq",label:"العَقِيق",top:"#3d1530",bg:"#2a1020",brd:"#1a0815",txt:"#d4a0c0",acc:"#d46090"},
+  {id:"firuze",label:"الفَيرُوز",top:"#143028",bg:"#0f2520",brd:"#091a15",txt:"#90d4c8",acc:"#40c8b0"},
+  {id:"luluu",label:"اللُّؤلُؤ",top:"#303030",bg:"#252525",brd:"#181818",txt:"#e0e0e0",acc:"#f0f0f0"},
+  {id:"zabarjad",label:"الزَّبَرجَد",top:"#153020",bg:"#102518",brd:"#091a10",txt:"#90d4a0",acc:"#50c870"},
+  {id:"lazward",label:"اللَّازَوَرد",top:"#152040",bg:"#101830",brd:"#0a1020",txt:"#9090d8",acc:"#6080e8"},
+];
+
+const ROWS_AR=[
+  ["ض","ص","ث","ق","ف","غ","ع","ه","خ","ح","ج","د"],
+  ["ش","س","ي","ب","ل","ا","ت","ن","م","ك","ط","⌫"],
+  ["ئ","ء","ؤ","ر","لا","ى","ة","و","ز","ظ","ذ"],
+  ["َ","ُ","ِ","ً","ٌ","ٍ","ّ","آ","أ","إ","ـ"],
+];
+const ROWS_EN=[
+  ["q","w","e","r","t","y","u","i","o","p"],
+  ["a","s","d","f","g","h","j","k","l"],
+  ["⇧","z","x","c","v","b","n","m","⌫"],
+];
+const ROWS_NUM=[
+  ["١","٢","٣","٤","٥","٦","٧","٨","٩","٠"],
+  ["+","-","×","÷","=","%",".",",","؟","!"],
+  ["(",")","«","»","،","؛",":","\"","'","_"],
+];
+
+/* ══ حالة التطبيق ══ */
+let curBg  = BG_THEMES[0];
+let curKey = KEY_THEMES[0];
+let kbMode = "ar";
+let dropId = 0;
+let settings = {
+  autocorrect:true, suggest:true, complete:true, spell:true,
+  poem:true, sound:false, haptic:true, clip:true,
+};
+let fontSize = 20;
+
+/* ══ DOM refs ══ */
+const mainInput  = document.getElementById('main-input');
+const charCount  = document.getElementById('char-count');
+const sugBar     = document.getElementById('sug-bar');
+const sugPlh     = document.getElementById('sug-placeholder');
+const sugWords   = document.getElementById('sug-words');
+const fasahaCard = document.getElementById('fasaha-card');
+const fasahaPills= document.getElementById('fasaha-pills');
+const wordInfo   = document.getElementById('word-info');
+const wiC = document.getElementById('wi-c');
+const wiM = document.getElementById('wi-m');
+const wiP = document.getElementById('wi-p');
+const kb  = document.getElementById('keyboard');
+const toastEl = document.getElementById('toast');
+const badge   = document.getElementById('autocorrect-badge');
+
+/* ══ شعر دوري ══ */
+let poemIdx=0;
+function nextPoem(){
+  poemIdx=(poemIdx+1)%POEMS.length;
+  const el=document.getElementById('poem-text');
+  el.style.animation='none';
+  el.offsetHeight;
+  el.style.animation='pf 6s ease forwards';
+  document.getElementById('poem-line').textContent=POEMS[poemIdx].t;
+  document.getElementById('poem-poet').textContent='— '+POEMS[poemIdx].p;
+}
+setInterval(nextPoem,6000);
+
+/* ══ بناء لوحة المفاتيح ══ */
+function buildKb(){
+  kb.innerHTML='';
+  const rows=kbMode==='ar'?ROWS_AR:kbMode==='en'?ROWS_EN:ROWS_NUM;
+  rows.forEach(row=>{
+    const div=document.createElement('div');
+    div.className='kb-row';
+    row.forEach(ch=>{
+      const btn=document.createElement('button');
+      btn.className='k';
+      const HARAKA=["َ","ُ","ِ","ً","ٌ","ٍ","ّ","ـ"];
+      if(ch==='⌫'||ch==='⇧') btn.classList.add('spec','wide');
+      else if(HARAKA.includes(ch)) btn.classList.add('haraka');
+      else if(ch==='لا') btn.classList.add('wide');
+      btn.textContent=ch;
+      btn.style.fontSize=HARAKA.includes(ch)?'20px':ch.length>1?'14px':'19px';
+      btn.addEventListener('pointerdown',e=>pressKey(e,ch));
+      div.appendChild(btn);
+    });
+    kb.appendChild(div);
+  });
+}
+buildKb();
+
+/* ══ ضغط مفتاح ══ */
+function pressKey(e,ch){
+  e.preventDefault();
+  const inp=mainInput;
+  if(ch==='⌫'){
+    inp.value=inp.value.slice(0,-1);
+    onType(inp.value);return;
+  }
+  if(ch==='⇧') return;
+  let val=inp.value+ch;
+  if(settings.autocorrect&&ch===' '){
+    const words=val.trimEnd().split(/\s+/);
+    const last=words[words.length-1];
+    if(COLL[last]){
+      words[words.length-1]=COLL[last];
+      val=words.join(' ')+' ';
+      showToast('✦ '+last+' ← '+COLL[last]);
+    }
+  }
+  inp.value=val;
+  onType(val);
+  // ink splash
+  try{
+    const r=e.currentTarget.getBoundingClientRect();
+    splash(e.clientX-r.left,e.clientY-r.top,e.currentTarget);
+  }catch(_){}
+}
+
+function splash(x,y,btn){
+  const d=document.createElement('span');
+  d.className='ink-drop';
+  d.style.cssText=`left:${x}px;top:${y}px;background:${curKey.acc}55;`;
+  btn.appendChild(d);
+  setTimeout(()=>d.remove(),700);
+}
+
+/* ══ تحليل النص ══ */
+function onType(val){
+  charCount.textContent=val.length;
+  mainInput.value=val;
+  const words=val.trimEnd().split(/\s+/);
+  const last=words[words.length-1]||'';
+
+  // شريط اقتراحات
+  if(settings.complete&&last.length>1){
+    const bar=Object.entries(DICT)
+      .filter(([k])=>k.startsWith(last)||last.startsWith(k.slice(0,-1)))
+      .slice(0,5).map(([,e])=>e.c);
+    if(bar.length){showSugBar(bar);} else hideSugBar();
+  } else hideSugBar();
+
+  // بطاقة الفصاحة
+  if(settings.suggest&&last.length>=2){
+    const hits=Object.entries(DICT).filter(([k])=>
+      k.includes(last)||last.includes(k.slice(0,-1)));
+    if(hits.length){showFasaha(hits.slice(0,3));} else hideFasaha();
+  } else hideFasaha();
+}
+
+function showSugBar(words){
+  sugPlh.style.display='none';
+  sugWords.style.display='flex';
+  sugWords.innerHTML='';
+  words.forEach((w,i)=>{
+    const btn=document.createElement('button');
+    btn.className='sug-word'+(i===1?' center':'');
+    btn.textContent=w;
+    btn.onclick=()=>insertWord(w);
+    sugWords.appendChild(btn);
+  });
+}
+function hideSugBar(){
+  sugPlh.style.display='flex';
+  sugWords.style.display='none';
+}
+function insertWord(w){
+  const words=mainInput.value.trimEnd().split(/\s+/);
+  words[words.length-1]=w;
+  mainInput.value=words.join(' ')+' ';
+  hideSugBar();hideFasaha();charCount.textContent=mainInput.value.length;
+}
+
+function showFasaha(hits){
+  fasahaCard.style.display='block';
+  fasahaPills.innerHTML='';
+  hits.forEach(([word,entry])=>{
+    const btn=document.createElement('button');
+    btn.className='f-pill';
+    btn.innerHTML=`<span class="orig">${word} ←</span>${entry.c}`;
+    btn.onclick=()=>{
+      insertWord(entry.c);
+      hideFasaha();
+      showWordInfo(entry);
+    };
+    fasahaPills.appendChild(btn);
+  });
+}
+function hideFasaha(){fasahaCard.style.display='none';}
+
+function showWordInfo(e){
+  wiC.textContent=e.c; wiM.textContent=e.m; wiP.textContent='— '+e.p;
+  wordInfo.style.display='block';
+}
+document.getElementById('word-info-close').onclick=()=>wordInfo.style.display='none';
+
+/* ══ أدوات ══ */
+document.getElementById('btn-convert').onclick=()=>{
+  let r=mainInput.value;
+  Object.entries(COLL).forEach(([c,f])=>{r=r.replace(new RegExp(c,'g'),f);});
+  mainInput.value=r;onType(r);showToast('تمَّ التحويلُ إلى الفصحى ✦');
+};
+function copyText(){navigator.clipboard?.writeText(mainInput.value);showToast('نُسِخَ النَّصّ ✦');}
+document.getElementById('btn-copy').onclick=copyText;
+document.getElementById('btn-clear').onclick=()=>{
+  mainInput.value='';onType('');
+  hideFasaha();wordInfo.style.display='none';
+};
+document.getElementById('btn-space').onclick=()=>{
+  mainInput.value+=' ';onType(mainInput.value);
+};
+document.getElementById('btn-enter').onclick=()=>{
+  mainInput.value+='\n';onType(mainInput.value);
+};
+
+// شريط اللغة
+document.querySelectorAll('.lang-btn').forEach(btn=>{
+  btn.onclick=()=>{
+    document.querySelectorAll('.lang-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    kbMode=btn.dataset.mode;buildKb();
+  };
+});
+
+// اقتراحات placeholder
+document.querySelectorAll('.sug-ph-item').forEach(btn=>{
+  btn.onclick=()=>insertWord(btn.dataset.w);
+});
+
+/* ══ Toast ══ */
+let toastTimer;
+function showToast(msg){
+  toastEl.textContent=msg;
+  toastEl.style.display='block';
+  toastEl.style.animation='none';
+  toastEl.offsetHeight;
+  toastEl.style.animation='tp 2.4s ease forwards';
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>toastEl.style.display='none',2400);
+}
+
+/* ══ الإعدادات ══ */
+const overlay = document.getElementById('settings-overlay');
+const setMain = document.getElementById('set-main');
+const btnBack  = document.getElementById('btn-back');
+const setTitle = document.getElementById('settings-title');
+const setSub   = document.getElementById('settings-subtitle');
+const btnClose = document.getElementById('btn-settings-close');
+
+document.getElementById('btn-settings').onclick=openSettings;
+document.getElementById('settings-dim').onclick=closeSettings;
+btnClose.onclick=closeSettings;
+
+function openSettings(){overlay.classList.add('open');}
+function closeSettings(){
+  overlay.classList.remove('open');
+  goMainMenu();
+}
+
+document.querySelectorAll('.set-item').forEach(item=>{
+  item.onclick=()=>openSec(item.dataset.sec);
+});
+
+function openSec(id){
+  setMain.style.display='none';
+  document.querySelectorAll('.sub-page').forEach(p=>p.classList.remove('open'));
+  document.getElementById('sec-'+id).classList.add('open');
+  btnBack.style.display='flex';
+  btnClose.style.display='none';
+  const labels={
+    languages:'اللُّغَات',preferences:'التَّفضِيلَات',theme:'المَظهَر',
+    corrections:'التَّصحِيح',glide:'الانسِيَابِيَّة',voice:'الصَّوتِيَّة',
+    clipboard:'الحَافِظَة',dictionary:'المُعجَم',privacy:'الخُصُوصِيَّة',about:'حَولَ دِيوَان'
+  };
+  setTitle.textContent=labels[id]||id;
+  setSub.textContent='';
+}
+
+function goMainMenu(){
+  setMain.style.display='block';
+  document.querySelectorAll('.sub-page').forEach(p=>p.classList.remove('open'));
+  btnBack.style.display='none';
+  btnClose.style.display='flex';
+  setTitle.textContent='الإعْدَادَات';
+  setSub.textContent='دِيوَان — مكتبة الفصاحة';
+}
+btnBack.onclick=goMainMenu;
+
+/* ── toggles ── */
+function bindToggle(id,key,cb){
+  const el=document.getElementById(id);
+  if(!el)return;
+  el.onclick=()=>{
+    settings[key]=!settings[key];
+    el.classList.toggle('on',settings[key]);
+    if(cb)cb(settings[key]);
+  };
+}
+bindToggle('tog-poem','poem',v=>{
+  document.getElementById('poem-bar').style.display=v?'flex':'none';
+});
+bindToggle('tog-sound','sound');
+bindToggle('tog-haptic','haptic');
+bindToggle('tog-autocorrect','autocorrect',v=>{
+  badge.style.display=v?'inline':'none';
+});
+bindToggle('tog-suggest','suggest',v=>{if(!v)hideFasaha();});
+bindToggle('tog-complete','complete',v=>{if(!v)hideSugBar();});
+bindToggle('tog-spell','spell');
+bindToggle('tog-clip','clip');
+bindToggle('tog-glide','glide');
+bindToggle('tog-voice','voice');
+
+/* ── themes ── */
+function applyBg(t){
+  curBg=t;
+  const r=document.documentElement.style;
+  r.setProperty('--bg',t.bg);
+  r.setProperty('--area',t.area);
+  r.setProperty('--panel',t.panel);
+  r.setProperty('--brd',t.brd);
+  if(t.light){
+    r.setProperty('--txt','#2a1a08');
+    r.setProperty('--sub','#7a5a30');
+    r.setProperty('--mut','#a08040');
+  } else {
+    r.setProperty('--txt','#e8d5a3');
+    r.setProperty('--sub','#5a4830');
+    r.setProperty('--mut','#3a2d1a');
+  }
+  document.querySelectorAll('#bg-swatches .swatch').forEach(s=>{
+    s.classList.toggle('active',s.dataset.id===t.id);
+  });
+}
+
+function applyKey(t){
+  curKey=t;
+  const r=document.documentElement.style;
+  r.setProperty('--kb-top',t.top);
+  r.setProperty('--kb-bg',t.bg);
+  r.setProperty('--kb-brd',t.brd);
+  r.setProperty('--kb-txt',t.txt);
+  r.setProperty('--acc',t.acc);
+  r.setProperty('--acc2',t.acc+'cc');
+  updateKeyPreview(t);
+  document.querySelectorAll('#key-swatches .swatch').forEach(s=>{
+    s.classList.toggle('active',s.dataset.id===t.id);
+  });
+}
+
+function updateKeyPreview(t){
+  document.querySelectorAll('.kp-key').forEach(k=>{
+    k.style.background=`linear-gradient(180deg,${t.top},${t.bg})`;
+    k.style.borderColor=t.brd;
+    k.style.color=k.classList.contains('acc')?t.acc:t.txt;
+  });
+}
+
+function buildSwatches(){
+  const bgS=document.getElementById('bg-swatches');
+  BG_THEMES.forEach(t=>{
+    const div=document.createElement('div');
+    div.className='swatch'+(t.id===curBg.id?' active':'');
+    div.dataset.id=t.id;
+    div.innerHTML=`<div class="swatch-circle" style="background:${t.bg};"></div>
+      <span class="swatch-name">${t.label}</span>`;
+    div.onclick=()=>applyBg(t);
+    bgS.appendChild(div);
+  });
+
+  const keyS=document.getElementById('key-swatches');
+  KEY_THEMES.forEach(t=>{
+    const div=document.createElement('div');
+    div.className='swatch'+(t.id===curKey.id?' active':'');
+    div.dataset.id=t.id;
+    div.innerHTML=`<div class="swatch-circle" style="background:linear-gradient(135deg,${t.top},${t.bg});border-color:${t.id===curKey.id?t.acc:'#333'}"></div>
+      <span class="swatch-name">${t.label}</span>`;
+    div.onclick=()=>applyKey(t);
+    keyS.appendChild(div);
+  });
+}
+buildSwatches();
+
+// حجم الخط
+const fontRange=document.getElementById('font-range');
+const fontVal=document.getElementById('font-val');
+fontRange.oninput=()=>{
+  fontSize=+fontRange.value;
+  fontVal.textContent=fontSize;
+  mainInput.style.fontSize=fontSize+'px';
+};
+
+/* ── معجم ── */
+const dictList=document.getElementById('dict-list');
+Object.entries(DICT).forEach(([word,e])=>{
+  const div=document.createElement('div');
+  div.className='dict-row';
+  div.innerHTML=`<div>
+    <div class="dict-pair">
+      <span class="dict-orig">${word}</span>
+      <span class="dict-arr">←</span>
+      <span class="dict-class">${e.c}</span>
+    </div>
+    <div class="dict-mean">${e.m.slice(0,60)}…</div>
+  </div>
+  <span class="dict-poet">— ${e.p}</span>`;
+  dictList.appendChild(div);
+});
+
+/* ══ PWA ══ */
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('./sw.js').catch(()=>{});
+}
+
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt',e=>{
+  e.preventDefault();deferredPrompt=e;
+  document.getElementById('install-banner').classList.add('show');
+});
+
+document.getElementById('btn-install').onclick=async()=>{
+  if(deferredPrompt){
+    deferredPrompt.prompt();
+    const r=await deferredPrompt.userChoice;
+    deferredPrompt=null;
+  }
+  document.getElementById('install-banner').classList.remove('show');
+};
+document.getElementById('btn-dismiss').onclick=()=>{
+  document.getElementById('install-banner').classList.remove('show');
+};
+
+// منع السحب والتكبير
+document.addEventListener('touchmove',e=>{if(e.touches.length>1)e.preventDefault();},{passive:false});
+</script>
+</body>
+</html>
